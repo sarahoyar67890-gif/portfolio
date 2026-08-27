@@ -388,6 +388,27 @@
   .contact-icon{ width:44px; height:44px; border-radius:10px; background: var(--orange-soft); border:1px solid var(--orange-line); display:flex; align-items:center; justify-content:center; color: var(--orange); flex-shrink:0; }
   .contact-card h4{ font-size:14px; font-family:'Bricolage Grotesque',sans-serif; margin-bottom:3px; }
   .contact-card span{ font-size:12.5px; color:var(--text-dim); font-family:'IBM Plex Mono',monospace; }
+  /* ---------- contact form ---------- */
+  .contact-form{ background: var(--surface); border:1px solid var(--border); border-radius:14px; padding:28px; margin-top:20px; }
+  .contact-form .form-row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+  @media (max-width:640px){ .contact-form .form-row{ grid-template-columns:1fr; } }
+  .contact-form input, .contact-form textarea{
+    width:100%; background: var(--charcoal); border:1px solid var(--border); border-radius:10px;
+    padding:12px 14px; color: var(--text); font-family:'IBM Plex Mono',monospace; font-size:13.5px;
+    outline:none; transition: border-color .2s ease;
+  }
+  .contact-form input:focus, .contact-form textarea:focus{ border-color: var(--orange-line); }
+  .contact-form textarea{ min-height:120px; resize:vertical; margin-bottom:16px; }
+  .contact-form button{
+    background: var(--orange); color:#08080a; border:none; border-radius:10px; padding:12px 22px;
+    font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; letter-spacing:.02em;
+    cursor:pointer; transition: opacity .2s ease;
+  }
+  .contact-form button:hover{ opacity:.88; }
+  .contact-form button:disabled{ opacity:.5; cursor:not-allowed; }
+  #form-status{ margin-top:12px; font-family:'IBM Plex Mono',monospace; font-size:12.5px; color: var(--text-dim); }
+  #form-status.ok{ color: var(--orange-glow); }
+  #form-status.err{ color:#ff6b6b; }
 
   /* ---------- connect / footer ---------- */
   .connect{ background: linear-gradient(150deg, rgba(255,90,31,0.10), rgba(255,90,31,0.02)); border:1px solid var(--orange-line); border-radius: 20px; padding:56px 40px; text-align:center; }
@@ -815,8 +836,56 @@
         <div><h4>LinkedIn</h4><span>Connect on LinkedIn →</span></div>
       </a>
     </div>
+
+    <form class="contact-form" id="contact-form" action="https://formspree.io/f/xaeywoaa" method="POST">
+      <div class="form-row">
+        <input type="text" name="name" placeholder="Your name" required>
+        <input type="email" name="email" placeholder="Your email" required>
+      </div>
+      <textarea name="message" placeholder="What would you like to talk about?" required></textarea>
+      <button type="submit" id="form-submit-btn">SEND MESSAGE →</button>
+      <p id="form-status"></p>
+    </form>
   </div>
 </section>
+
+<script>
+(function(){
+  const form = document.getElementById('contact-form');
+  const status = document.getElementById('form-status');
+  const btn = document.getElementById('form-submit-btn');
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    status.textContent = '';
+    status.className = '';
+    btn.disabled = true;
+    btn.textContent = 'SENDING…';
+    fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { 'Accept': 'application/json' }
+    }).then(function(response){
+      if (response.ok) {
+        status.textContent = 'Thanks — your message is in. I\'ll get back to you soon.';
+        status.className = 'ok';
+        form.reset();
+      } else {
+        return response.json().then(function(data){
+          const msg = (data && data.errors) ? data.errors.map(function(x){ return x.message; }).join(', ') : 'Something went wrong — please email me directly instead.';
+          status.textContent = msg;
+          status.className = 'err';
+        });
+      }
+    }).catch(function(){
+      status.textContent = 'Something went wrong — please email me directly instead.';
+      status.className = 'err';
+    }).finally(function(){
+      btn.disabled = false;
+      btn.textContent = 'SEND MESSAGE →';
+    });
+  });
+})();
+</script>
 
 <section id="connect-wrap">
   <div class="wrap">
